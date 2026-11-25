@@ -135,3 +135,5 @@ oj-debug.*.json
 /perso/
 *.pdf
 .dev.vars
+sentinelle/node_modules/
+sentinelle/.wrangler/

@@ -185,6 +185,73 @@ def note_interne(resultat: ResultatMemoire) -> str:
     return f"\n\n[Note interne de Sebtix, invisible pour l'utilisateur — {resultat.note}]"
 
 
+# ------------------------------------------------------------------ mémoire partagée (Sentinelle)
+
+
+def _fichier_en_attente() -> Path:
+    from sebtix.config import dossier_donnees
+
+    return dossier_donnees() / "memoire_en_attente.txt"
+
+
+def ecrire_miroir(souvenirs: list[dict], memoire: Optional[Path] = None) -> None:
+    """Réécrit perso/memoire.md à partir de la mémoire de la Sentinelle (source de vérité)."""
+    memoire = memoire or _chemins()[0]
+    lignes = ["# Ce que Sebtix a retenu"] + [f"- {s['texte']}" for s in souvenirs]
+    memoire.write_text("\n".join(lignes) + "\n", encoding="utf-8")
+
+
+def synchroniser_memoire() -> int:
+    """Envoie les « retiens » faits hors ligne, puis met le miroir local à jour.
+
+    Renvoie le nombre de souvenirs. Lève SentinelleInjoignable si la Sentinelle ne répond pas.
+    """
+    from sebtix import sentinelle
+
+    attente = _fichier_en_attente()
+    if attente.exists():
+        for ligne in attente.read_text(encoding="utf-8").splitlines():
+            if ligne.strip():
+                sentinelle.commande_memoire(ligne)
+        attente.unlink()
+    souvenirs = sentinelle.memoire()
+    ecrire_miroir(souvenirs)
+    return len(souvenirs)
+
+
+def traiter_partage(texte: str) -> Optional[ResultatMemoire]:
+    """Comme `traiter`, mais via la mémoire partagée de la Sentinelle quand elle est joignable."""
+    from sebtix import sentinelle
+
+    commande = _RE_OUBLIER.match(texte) or _RE_RETENIR.match(texte) or _RE_SAVOIR.search(texte)
+    if commande is None:
+        return None
+    if not sentinelle.configuree():
+        return traiter(texte)
+
+    try:
+        note = sentinelle.commande_memoire(texte)
+        synchroniser_memoire()
+    except sentinelle.SentinelleInjoignable:
+        resultat = traiter(texte)  # hors ligne : en local, envoyé à la prochaine synchro
+        if resultat and resultat.action == "ajout":
+            with _fichier_en_attente().open("a", encoding="utf-8") as f:
+                f.write(texte.replace("\n", " ") + "\n")
+        return resultat
+
+    if note is None:
+        return None
+    # « oublie » : la mémoire partagée n'a rien trouvé → peut-être une ligne du profil (local).
+    if (m := _RE_OUBLIER.match(texte)) and note.startswith("Rien dans ta mémoire"):
+        local = oublier(m.group("texte"), Path("/sebtix-inexistant"), _chemins()[1])
+        if local.action in ("oubli", "ambigu"):
+            return local
+    if _RE_SAVOIR.search(texte) and not _RE_OUBLIER.match(texte) and not _RE_RETENIR.match(texte):
+        # Le profil fait foi côté Mac (fichier local, toujours à jour).
+        return consulter(*_chemins())
+    return ResultatMemoire("partage", note)
+
+
 def appliquer_aux_messages(messages: list[Any]) -> Optional[ResultatMemoire]:
     """Traite le DERNIER message utilisateur d'une requête de chat (objets avec .role/.content).
 
@@ -196,7 +263,7 @@ def appliquer_aux_messages(messages: list[Any]) -> Optional[ResultatMemoire]:
         contenu = getattr(message, "content", None)
         if not isinstance(contenu, str) or "[Note interne de Sebtix" in contenu:
             return None
-        resultat = traiter(contenu)
+        resultat = traiter_partage(contenu)
         if resultat is not None:
             message.content = contenu + note_interne(resultat)
         return resultat

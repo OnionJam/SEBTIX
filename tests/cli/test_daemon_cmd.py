@@ -36,7 +36,8 @@ class TestDaemonCommands:
     def test_stop_no_server(self) -> None:
         """``jarvis stop`` when no PID file shows 'not running'."""
         with patch("openjarvis.cli.daemon_cmd._read_pid", return_value=None):
-            result = CliRunner().invoke(cli, ["stop"])
+            # Sebtix : « stop » coupe la surveillance ; l'arrêt du serveur est « serveur-stop ».
+            result = CliRunner().invoke(cli, ["serveur-stop"])
         assert result.exit_code != 0
         assert "No running server" in result.output
 

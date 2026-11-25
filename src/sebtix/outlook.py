@@ -88,6 +88,27 @@ def connecter(afficher: Callable[[str], None] = print) -> str:
     return resultat.get("id_token_claims", {}).get("preferred_username", "compte inconnu")
 
 
+def connecter_sentinelle(afficher: Callable[[str], None] = print) -> None:
+    """Connexion par code dédiée à la Sentinelle : le jeton part chez elle, rien n'est gardé ici."""
+    import msal
+
+    from sebtix import sentinelle
+
+    app = msal.PublicClientApplication(_client_id(), authority=AUTORITE)  # cache en mémoire
+    flux = app.initiate_device_flow(scopes=DROITS)
+    if "user_code" not in flux:
+        raise RuntimeError(f"Microsoft a refusé de démarrer la connexion : {flux}")
+    afficher(
+        f"\n1. Ouvre {flux['verification_uri']}\n2. Tape ce code : {flux['user_code']}\n"
+        "3. Connecte-toi avec ton compte Hotmail et accepte.\nJ'attends…\n"
+    )
+    resultat = app.acquire_token_by_device_flow(flux)
+    jeton = resultat.get("refresh_token")
+    if not jeton:
+        raise RuntimeError(f"Connexion refusée : {resultat.get('error_description', resultat.get('error'))}")
+    sentinelle._appel("POST", "/api/outlook/jeton", {"refresh_token": jeton})
+
+
 def deconnecter() -> None:
     app = _application()
     for compte in app.get_accounts():

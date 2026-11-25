@@ -1,0 +1,40 @@
+# Sentinelle de Sebtix — Cloudflare Workers (offre gratuite).
+# Secrets (jamais dans ce fichier) : `npx wrangler secret list` pour voir leurs NOMS.
+#   TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, TELEGRAM_WEBHOOK_SECRET, SEBTIX_SYNC_KEY
+
+name = "sebtix-sentinelle"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Workers AI : modèle léger gratuit (10 000 neurones/jour, bloqué — jamais facturé — au-delà).
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "sebtix"
+database_id = "241f475c-e86d-408d-90f1-39df9845e68c"
+
+[vars]
+MODELE_CHAT = "@cf/mistralai/mistral-small-3.1-24b-instruct"
+MODELE_TRANSCRIPTION = "@cf/openai/whisper-large-v3-turbo"
+# Voix : Azure Speech (offre gratuite F0). Clé = secret AZURE_SPEECH_KEY.
+VOIX_AZURE = "fr-FR-HenriNeural"
+AZURE_SPEECH_REGION = "francecentral"
+FUSEAU = "Europe/Paris"
+# Application Microsoft « Sebtix » (lecture seule). Identifiant public, pas un secret.
+MS_CLIENT_ID = "0247b976-c5a7-4834-b3a9-fc4bb268f5b7"
+
+# Personnalité : même fichier que sur le Mac (une seule source de vérité).
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true
+
+[observability]
+enabled = true
+
+# Tâches planifiées (heure UTC). 03:00 : purge des conversations de plus de 30 jours.
+[triggers]
+crons = ["0 3 * * *"]

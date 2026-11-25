@@ -166,6 +166,17 @@ async def chat_completions(request_body: ChatCompletionRequest, request: Request
         appliquer_aux_messages(request_body.messages)
     except Exception:
         logging.getLogger("sebtix").warning("Commande de mémoire échouée", exc_info=True)
+    # Sebtix : une nouvelle conversation reprend les derniers échanges (téléphone ou Mac).
+    try:
+        from openjarvis.server.models import ChatMessage
+        from sebtix.conversation import reprendre_contexte
+
+        reprendre_contexte(
+            request_body.messages,
+            lambda role, contenu: ChatMessage(role=role, content=contenu),
+        )
+    except Exception:
+        logging.getLogger("sebtix").warning("Reprise de contexte échouée", exc_info=True)
 
     engine = request.app.state.engine
     agent = getattr(request.app.state, "agent", None)
@@ -400,6 +411,13 @@ def _record_completed_exchange(
     """Publish or submit a completed exchange without blocking a reply."""
     if not user_text:
         return
+    # Sebtix : l'échange est aussi envoyé à la Sentinelle (en arrière-plan).
+    try:
+        from sebtix.conversation import partager_echange
+
+        partager_echange(user_text, assistant_text or "")
+    except Exception:  # noqa: BLE001
+        logging.getLogger("sebtix").debug("Partage de l'échange échoué", exc_info=True)
     try:
         if bus is not None:
             from openjarvis.memory import publish_completed_exchange

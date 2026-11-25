@@ -95,6 +95,9 @@ def test_message_normal_ignore(fichiers):
 def test_appliquer_aux_messages_ajoute_une_note(monkeypatch, fichiers):
     mem, prof = fichiers
     monkeypatch.setattr(m, "_chemins", lambda: (mem, prof))
+    from sebtix import sentinelle
+
+    monkeypatch.setattr(sentinelle, "configuree", lambda: False)  # jamais la vraie Sentinelle
     messages = [
         SimpleNamespace(role="user", content="Retiens que j'ai un chat"),
         SimpleNamespace(role="assistant", content="ok"),

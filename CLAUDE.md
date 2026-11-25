@@ -79,8 +79,52 @@ d'humour, jamais bavard (surtout à l'oral). Parle français.
 - La Sentinelle (étape 4) aura besoin de sa propre connexion (même app, jeton chiffré côté
   Cloudflare).
 
+## Sentinelle (Cloudflare Workers, offre gratuite) — étape 4
+- Dossier `sentinelle/` (JavaScript). Déployer : `cd sentinelle && npx wrangler deploy`.
+  Tests : `npx vitest run`. Journaux en direct : `npx wrangler tail`.
+  URL : https://sebtix-sentinelle.sebtix-sentinelle.workers.dev (compte Cloudflare via GitHub).
+  Télémétrie wrangler désactivée.
+- Base D1 `sebtix` (Europe de l'Ouest), schéma `sentinelle/schema.sql` : messages (30 j, purge
+  cron 03:00 UTC), memoire, etat (surveillance, profil, jetons Outlook chiffrés, compteur Azure),
+  deja_vu (anti-doublons), taches, conso.
+- Secrets Cloudflare (`npx wrangler secret list`) : TELEGRAM_TOKEN, TELEGRAM_CHAT_ID,
+  TELEGRAM_WEBHOOK_SECRET, SEBTIX_SYNC_KEY, AZURE_SPEECH_KEY, CHIFFREMENT_CLE.
+  Le Mac n'a que SEBTIX_SENTINELLE_URL et SEBTIX_SYNC_KEY dans `.env` (jamais le jeton Telegram).
+- Bot Telegram @sebtix_bot : ne répond qu'au chat privé du propriétaire ; webhook vérifié par
+  secret ; anti-doublon par update_id. Installation : `sebtix telegram installer` (jeton saisi
+  masqué, envoyé directement à Cloudflare). Commandes : /aide /etat /stop /reprendre /mac.
+- Modèles : chat **Mistral Small 3.1** (`@cf/mistralai/mistral-small-3.1-24b-instruct`, ~0,7 s,
+  tutoie). Gemma 4 écarté : modèle « qui réfléchit », réponses vides (si réutilisé :
+  `chat_template_kwargs.enable_thinking=false`). Transcription : whisper-large-v3-turbo (FR).
+  **Voix : Azure Speech F0** (ressource `sebtix-voix-jam`, France Central, voix fr-FR-HenriNeural,
+  bulles vocales OGG/Opus) — MeloTTS de Cloudflare retiré le 2026-11-20, aucune voix FR chez
+  Cloudflare. Garde-fou à 480 000 caractères/mois. ⚠️ L'essai Azure devra passer en « paiement à
+  l'utilisation » (0 € avec F0) vers le 2026-12-25 pour garder la voix : demander l'accord avant.
+- Coût réel par réponse lu dans `usage.neurons` → table conso → `sebtix budget`.
+- API privée du Mac (`sentinelle/src/api.js`, Bearer SEBTIX_SYNC_KEY) : etat, budget, profil,
+  memoire (+ /commande), messages, taches, notifier, outlook/jeton, outlook/test,
+  diagnostic (webhook), essai (réponse brute du modèle + test voix, n'enregistre rien).
+- Outlook côté Sentinelle (`sentinelle/src/outlook.js`) : refresh token obtenu par
+  `sebtix outlook connecter-sentinelle` (connexion séparée de celle du Mac), chiffré AES-GCM
+  (clé CHIFFREMENT_CLE) dans `etat`, renouvelé et tourné automatiquement ; GET uniquement.
+
+## Synchronisation Mac ↔ Sentinelle
+- La Sentinelle est la source de vérité (mémoire, conversations, tâches, surveillance).
+  `perso/memoire.md` = miroir réécrit par la synchro ; « retiens » hors ligne → mis en attente
+  (`~/.openjarvis/sebtix/memoire_en_attente.txt`) puis renvoyé.
+- `src/sebtix/sentinelle.py` (client), `conversation.py` (nouvelle conversation sur le Mac =
+  10 derniers messages < 12 h insérés ; chaque échange du Mac envoyé en arrière-plan, branché dans
+  `_record_completed_exchange` de routes.py), `synchro.py` (`sebtix sync` : profil → Sentinelle,
+  miroir mémoire, tâches traitées avec le modèle local puis notifiées sur Telegram).
+- `sebtix sync installer` = LaunchAgent `com.sebtix.sync` (toutes les 5 min + au réveil).
+  Modifie le Mac durablement : ne l'installer qu'avec l'accord de l'utilisateur.
+- `sebtix stop` / `sebtix reprendre` / `sebtix budget` (Sentinelle). L'ancien `stop`
+  d'OpenJarvis (arrêt du serveur local) s'appelle `sebtix serveur-stop`.
+- Garde-fou : sous pytest, `sentinelle.configuree()` renvoie toujours False.
+
 ## Tests
 - `uv run --extra dev --extra server pytest tests/server tests/cli tests/sebtix -n 6`
+- `cd sentinelle && npx vitest run`
 - 7 échecs connus, antérieurs à Sebtix : `tests/cli/test_memory_cmd.py` et
   `tests/cli/test_ask_context.py` (extension Rust `openjarvis_rust` non compilée).
 
@@ -96,8 +140,9 @@ Repli possible à l'oral (étape 9) : `qwen3:8b` (21 tokens/s, quelques fautes).
 Écartés : qwen3.5:9b (a inventé un détail en résumant un mail), ministral-3:8b (trop bavard).
 
 ## Points d'attention pour la suite
-- `sebtix stop` existe déjà dans OpenJarvis (arrête le serveur local). À l'étape 4, il devra
-  couper TOUTE la surveillance (Sentinelle comprise) : le redéfinir à ce moment-là.
+- Étapes 5 et 6 : les tâches planifiées de la Sentinelle doivent vérifier `surveillanceActive()`
+  (`sebtix stop`) avant toute notification ou brief. Limite Workers Free : 5 crons.
+
 ## Avancement
 | # | Étape | État |
 |---|-------|------|
@@ -105,7 +150,7 @@ Repli possible à l'oral (étape 9) : `qwen3:8b` (21 tokens/s, quelques fautes).
 | 1 | Installation (fork, dépendances, Ollama, choix du modèle) | ✅ |
 | 2 | Rebranding, personnalité, mémoire (profil.md) | ✅ |
 | 3 | Connexion Outlook (Graph, lecture seule) | ✅ |
-| 4 | Sentinelle Cloudflare + Telegram + synchro + `sebtix stop` / `sebtix budget` | ⏳ |
+| 4 | Sentinelle Cloudflare + Telegram + synchro + `sebtix stop` / `sebtix budget` | ✅ |
 | 5 | Brief du matin (8h) | ⏳ |
 | 6 | Surveillance des mails | ⏳ |
 | 7 | Veille emploi (9h) | ⏳ |
@@ -124,3 +169,6 @@ Repli possible à l'oral (étape 9) : `qwen3:8b` (21 tokens/s, quelques fautes).
 - 2026-11-25 — Étape 3 : compte Azure gratuit + app Entra « Sebtix » (lecture seule),
   connecteur Graph `src/sebtix/outlook.py` (jetons dans le Trousseau), commandes
   `sebtix outlook …`. Testé sur la vraie boîte : 5 derniers mails + agenda du jour OK.
+- 2026-11-26 — Étape 4 : Sentinelle Cloudflare (D1, Workers AI) + bot Telegram privé (texte,
+  vocaux, réponses vocales Azure), mémoire/conversations partagées, file de tâches `/mac`,
+  `sebtix sync | stop | reprendre | budget`, Outlook chiffré côté Sentinelle. Tout testé en réel.

@@ -52,6 +52,8 @@ dependencies = [
     # IANA time-zone fallback for Windows and minimal container images.
     "tzdata>=2025.3",
     "websockets>=15.0.1",
+    "msal>=1.31",
+    "msal-extensions>=1.2",
 ]
 
 [project.optional-dependencies]

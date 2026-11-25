@@ -199,6 +199,11 @@ if not _DATA_BOUNDARY_BOOTSTRAP:
     except ImportError:
         pass
 
+    # Sebtix : commandes des modules personnels (voir src/sebtix/cli.py).
+    from sebtix.cli import enregistrer as _enregistrer_sebtix
+
+    _enregistrer_sebtix(cli)
+
 
 def main() -> None:
     """Entry point registered as ``jarvis`` console script."""

@@ -60,6 +60,25 @@ d'humour, jamais bavard (surtout à l'oral). Parle français.
 - Outils activés : `web_search` seulement. `shell_exec` et `code_interpreter` désactivés
   (exécution de commandes sur le Mac).
 
+## Outlook (Microsoft Graph) — étape 3
+- Compte Hotmail seul = refusé par le portail Microsoft (pas de tenant). Solution retenue :
+  **compte Azure gratuit** (créé le 2026-11-25 avec le compte Hotmail ; limite de dépense par
+  défaut, ne jamais passer au « paiement à l'utilisation » sans accord). Incertitude : rien ne
+  garantit que l'app reste utilisable après la fin de l'offre gratuite ; plan de secours =
+  paiement à l'utilisation sans aucune ressource (0 €) + alerte budget 1 €, avec accord.
+  Ne PAS utiliser le compte de l'école (tenant géré par l'école).
+- App Entra « Sebtix » : comptes Microsoft personnels uniquement, « Autoriser les flux clients
+  publics » = Activé (sinon AADSTS70002), permissions déléguées Mail.Read, Calendars.Read,
+  offline_access. Client ID dans `.env` (`SEBTIX_MS_CLIENT_ID`), modèle dans `.env.example`.
+- `src/sebtix/outlook.py` : MSAL, autorité `consumers`, connexion par code (device flow),
+  jetons chiffrés dans le Trousseau macOS (`msal-extensions`, fichier
+  `~/.openjarvis/sebtix/outlook_jetons.bin`). **GET uniquement** (test AST qui l'impose).
+  Droits vérifiés dans le cache : `Calendars.Read Mail.Read openid profile`.
+- Commandes : `sebtix outlook connecter | statut | mails [-n N] | agenda | deconnecter`
+  (déclarées dans `src/sebtix/cli.py`, branché à la fin de `openjarvis/cli/__init__.py`).
+- La Sentinelle (étape 4) aura besoin de sa propre connexion (même app, jeton chiffré côté
+  Cloudflare).
+
 ## Tests
 - `uv run --extra dev --extra server pytest tests/server tests/cli tests/sebtix -n 6`
 - 7 échecs connus, antérieurs à Sebtix : `tests/cli/test_memory_cmd.py` et
@@ -85,7 +104,7 @@ Repli possible à l'oral (étape 9) : `qwen3:8b` (21 tokens/s, quelques fautes).
 | 0 | Prérequis (outils Apple, Homebrew, GitHub) | ✅ |
 | 1 | Installation (fork, dépendances, Ollama, choix du modèle) | ✅ |
 | 2 | Rebranding, personnalité, mémoire (profil.md) | ✅ |
-| 3 | Connexion Outlook (Graph, lecture seule) | ⏳ |
+| 3 | Connexion Outlook (Graph, lecture seule) | ✅ |
 | 4 | Sentinelle Cloudflare + Telegram + synchro + `sebtix stop` / `sebtix budget` | ⏳ |
 | 5 | Brief du matin (8h) | ⏳ |
 | 6 | Surveillance des mails | ⏳ |
@@ -102,3 +121,6 @@ Repli possible à l'oral (étape 9) : `qwen3:8b` (21 tokens/s, quelques fautes).
   leaderboard / minage retirés, personnalité FR (SOUL.md), profil + mémoire dans `perso/`,
   mémoire déterministe (`src/sebtix/memoire.py`, 13 tests). Testé dans l'interface web :
   identité, « retiens », « qu'est-ce que tu sais sur moi ? », « oublie » → OK. NOTICE ajouté.
+- 2026-11-25 — Étape 3 : compte Azure gratuit + app Entra « Sebtix » (lecture seule),
+  connecteur Graph `src/sebtix/outlook.py` (jetons dans le Trousseau), commandes
+  `sebtix outlook …`. Testé sur la vraie boîte : 5 derniers mails + agenda du jour OK.

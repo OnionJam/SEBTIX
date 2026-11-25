@@ -117,7 +117,7 @@ d'humour, jamais bavard (surtout à l'oral). Parle français.
   `_record_completed_exchange` de routes.py), `synchro.py` (`sebtix sync` : profil → Sentinelle,
   miroir mémoire, tâches traitées avec le modèle local puis notifiées sur Telegram).
 - `sebtix sync installer` = LaunchAgent `com.sebtix.sync` (toutes les 5 min + au réveil).
-  Modifie le Mac durablement : ne l'installer qu'avec l'accord de l'utilisateur.
+  **Installé le 2026-11-26 avec l'accord de l'utilisateur.** Journal : `~/.openjarvis/sebtix/sync.log`.
 - `sebtix stop` / `sebtix reprendre` / `sebtix budget` (Sentinelle). L'ancien `stop`
   d'OpenJarvis (arrêt du serveur local) s'appelle `sebtix serveur-stop`.
 - Garde-fou : sous pytest, `sentinelle.configuree()` renvoie toujours False.

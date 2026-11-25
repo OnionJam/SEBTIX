@@ -88,7 +88,6 @@ docs/superpowers/
 .superpowers/
 
 # Claude Code project instructions (per-developer)
-CLAUDE.md
 .claude/
 
 # Tauri auto-generated schemas
@@ -131,3 +130,8 @@ learning.db
 minion_logs/
 *.oj-debug.json
 oj-debug.*.json
+
+# Sebtix — données personnelles : JAMAIS sur GitHub (le dépôt est public)
+/perso/
+*.pdf
+.dev.vars

@@ -89,6 +89,7 @@ def test_tunnel_status_reads_utf8_config(tmp_path: Path) -> None:
     assert "https://example.test" in result.output
 
 
+@pytest.mark.skip(reason="Sebtix : commande mine retirée")
 def test_mine_init_appends_to_utf8_config(tmp_path: Path) -> None:
     config_path = tmp_path / "config.toml"
     config_path.write_bytes(_NON_CP1252_COMMENT.encode("utf-8"))

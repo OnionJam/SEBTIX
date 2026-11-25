@@ -158,6 +158,15 @@ def _ensure_identity_prompt(messages: list[Message], app_config) -> list[Message
 @router.post("/v1/chat/completions")
 async def chat_completions(request_body: ChatCompletionRequest, request: Request):
     """Handle chat completion requests (streaming and non-streaming)."""
+    # Sebtix : « retiens… », « oublie… », « qu'est-ce que tu sais sur moi ? »
+    # sont exécutés ici, sans dépendre du modèle (voir src/sebtix/memoire.py).
+    try:
+        from sebtix.memoire import appliquer_aux_messages
+
+        appliquer_aux_messages(request_body.messages)
+    except Exception:
+        logging.getLogger("sebtix").warning("Commande de mémoire échouée", exc_info=True)
+
     engine = request.app.state.engine
     agent = getattr(request.app.state, "agent", None)
     model = request_body.model

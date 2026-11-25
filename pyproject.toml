@@ -218,7 +218,8 @@ Repository = "https://github.com/open-jarvis/OpenJarvis"
 Issues = "https://github.com/open-jarvis/OpenJarvis/issues"
 
 [project.scripts]
-jarvis = "openjarvis.cli:main"
+sebtix = "openjarvis.cli:main"
+jarvis = "openjarvis.cli:main"  # gardé : OpenJarvis se relance lui-même sous ce nom
 openjarvis-eval = "openjarvis.evals.cli:main"
 
 # Version is derived from git tags by hatch-vcs (see #526). For source/editable
@@ -260,7 +261,7 @@ exclude = [
 artifacts = ["/src/openjarvis/server/static/**"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/openjarvis"]
+packages = ["src/openjarvis", "src/sebtix"]
 artifacts = ["/src/openjarvis/server/static/**"]
 exclude = [
     "/src/openjarvis/agents/claude_code_runner",

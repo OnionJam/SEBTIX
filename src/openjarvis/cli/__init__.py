@@ -35,10 +35,10 @@ def _should_skip_update_check(ctx: click.Context, argv: list[str]) -> bool:
 
 
 @click.group(
-    help="OpenJarvis — modular AI assistant backend",
+    help="Sebtix — ton assistant personnel (basé sur OpenJarvis)",
     invoke_without_command=True,
 )
-@click.version_option(version=openjarvis.__version__, prog_name="jarvis")
+@click.version_option(version=openjarvis.__version__, prog_name="sebtix")
 @click.option("--verbose", is_flag=True, default=False, help="Enable debug logging")
 @click.option("--quiet", is_flag=True, default=False, help="Suppress non-error output")
 @click.option(
@@ -118,11 +118,9 @@ if not _DATA_BOUNDARY_BOOTSTRAP:
     from openjarvis.cli.host_cmd import host
     from openjarvis.cli.init_cmd import init
     from openjarvis.cli.memory_cmd import memory
-    from openjarvis.cli.mine_cmd import mine
     from openjarvis.cli.model import model
     from openjarvis.cli.operators_cmd import operators
     from openjarvis.cli.optimize_cmd import optimize_group
-    from openjarvis.cli.pearl_cmd import pearl
     from openjarvis.cli.quickstart_cmd import quickstart
     from openjarvis.cli.registry_cmd import registry
     from openjarvis.cli.scheduler_cmd import scheduler
@@ -140,8 +138,6 @@ if not _DATA_BOUNDARY_BOOTSTRAP:
     cli.add_command(serve, "serve")
     cli.add_command(model, "model")
     cli.add_command(memory, "memory")
-    cli.add_command(mine, "mine")
-    cli.add_command(pearl, "pearl")
     cli.add_command(telemetry, "telemetry")
     cli.add_command(bench, "bench")
     cli.add_command(channel, "channel")

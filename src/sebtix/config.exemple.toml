@@ -1,0 +1,30 @@
+# Sebtix configuration (basée sur OpenJarvis)
+# Hardware: Apple M5 (10 cores, 16.0 GB RAM)
+# GPU: Apple M5 (16.0 GB unified memory)
+# Copie de référence (sans secrets) : src/sebtix/config.exemple.toml dans le dépôt.
+
+[engine]
+default = "ollama"
+
+[engine.ollama]
+# host = "http://localhost:11434"  # set to remote URL if engine runs elsewhere
+
+[intelligence]
+default_model = "gemma3:12b"
+
+[agent]
+default_agent = "simple"
+default_system_prompt = "Tu es Sebtix, l'assistant personnel de ton utilisateur. Tu tournes en local sur son Mac. Tu n'es ni OpenJarvis, ni Claude, ni ChatGPT. Si on te demande qui tu es, réponds que tu es Sebtix. Tu réponds toujours en français, en le tutoyant."
+
+[tools]
+# Sebtix : uniquement des outils sans risque. shell_exec et code_interpreter
+# (exécution de commandes sur le Mac) sont volontairement désactivés.
+enabled = ["web_search"]
+
+[system_prompt]
+user_max_chars = 4000
+memory_max_chars = 4000
+
+[analytics]
+enabled = false
+choice_recorded = true

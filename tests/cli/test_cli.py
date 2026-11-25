@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from unittest import mock
 
+import pytest
 from click.testing import CliRunner
 
 import openjarvis
@@ -88,6 +89,7 @@ class TestCLI:
         assert "search" in result.output
         assert "stats" in result.output
 
+    @pytest.mark.skip(reason="Sebtix : commande mine retirée")
     def test_mine_subcommands_exist(self) -> None:
         result = CliRunner().invoke(cli, ["mine", "--help"])
         assert result.exit_code == 0

@@ -8,16 +8,16 @@ from __future__ import annotations
 # print time via a style argument. The "standard" font renders a clearly
 # readable capital J (the bottom-left \___/ hook), unlike the cramped prior
 # art where the J read as an I.
+# Sebtix : wordmark « Sebtix » (figlet standard) à la place d'« OpenJarvis ».
 _WORDMARK = (
-    "  ___                       _                  _     ",
-    " / _ \\ _ __   ___ _ __     | | __ _ _ ____   _(_)___ ",
-    "| | | | '_ \\ / _ \\ '_ \\ _  | |/ _` | '__\\ \\ / / / __|",
-    "| |_| | |_) |  __/ | | | |_| | (_| | |   \\ V /| \\__ \\",
-    " \\___/| .__/ \\___|_| |_|\\___/ \\__,_|_|    \\_/ |_|___/",
-    "      |_|                                            ",
+    " ____       _     _   _      ",
+    "/ ___|  ___| |__ | |_(_)_  __",
+    "\\___ \\ / _ \\ '_ \\| __| \\ \\/ /",
+    " ___) |  __/ |_) | |_| |>  < ",
+    "|____/ \\___|_.__/ \\__|_/_/\\_\\",
 )
 
-_TAGLINE = "Personal AI, On Personal Devices"
+_TAGLINE = "Ton assistant perso — basé sur OpenJarvis"
 
 
 def print_banner(quiet: bool = False) -> None:

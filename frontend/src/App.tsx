@@ -13,7 +13,6 @@ import { SetupScreen } from './components/SetupScreen';
 import { Toaster } from './components/ui/sonner';
 import { useAppStore } from './lib/store';
 import { fetchModels, fetchServerInfo, fetchSavings, submitSavings, isTauri } from './lib/api';
-import { OptInModal } from './components/OptInModal';
 import { UpdateChecker } from './components/Desktop/UpdateChecker';
 import { track, hashId } from './lib/analytics';
 import { offerAnalyticsChoice } from './lib/analytics-invitation';
@@ -43,7 +42,6 @@ export default function App() {
   const optInEmail = useAppStore((s) => s.optInEmail);
   const optInAnonId = useAppStore((s) => s.optInAnonId);
   const optInModalSeen = useAppStore((s) => s.optInModalSeen);
-  const optInModalOpen = useAppStore((s) => s.optInModalOpen);
   const setOptInModalOpen = useAppStore((s) => s.setOptInModalOpen);
   const markOptInModalSeen = useAppStore((s) => s.markOptInModalSeen);
   const savings = useAppStore((s) => s.savings);
@@ -204,9 +202,7 @@ export default function App() {
       </Routes>
       <Toaster position="bottom-right" />
       {commandPaletteOpen && <CommandPalette />}
-      {optInModalOpen && (
-        <OptInModal onClose={() => setOptInModalOpen(false)} />
-      )}
+      {/* Sebtix : fenêtre « Win a Mac mini » (concours + partage de données) retirée. */}
     </>
   );
 }

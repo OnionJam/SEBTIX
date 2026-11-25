@@ -11,9 +11,9 @@ import { listConnectors } from '../../lib/connectors-api';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 18) return 'Good afternoon';
-  return 'Good evening';
+  if (hour < 12) return 'Salut, bien dormi ?';
+  if (hour < 18) return 'Salut !';
+  return 'Bonsoir !';
 }
 
 export function ChatArea() {
@@ -192,7 +192,7 @@ export function ChatArea() {
               {getGreeting()}
             </h2>
             <p className="text-sm text-center max-w-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
-              Ask anything. Your AI runs locally — private, fast, and always available.
+              Sebtix, ton assistant. Il tourne sur ton Mac : rien ne sort sans ton accord.
             </p>
 
             {/* Quick action hints */}

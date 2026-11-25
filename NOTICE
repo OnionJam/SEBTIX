@@ -1,0 +1,14 @@
+Sebtix
+Assistant personnel, fork d'OpenJarvis.
+
+Ce projet est dérivé d'OpenJarvis (https://github.com/open-jarvis/OpenJarvis),
+Copyright les contributeurs d'Open Jarvis, distribué sous licence Apache 2.0
+(voir le fichier LICENSE, conservé tel quel).
+
+Principales modifications apportées par Sebtix :
+- Nom affiché, commande `sebtix`, personnalité francophone (src/sebtix/persona/)
+- Modules personnels dans src/sebtix/ (mémoire, et modules à venir)
+- Retrait de la fenêtre de concours / partage de données et du classement
+  dans l'interface web, et des commandes de minage `mine` et `pearl`
+
+Sebtix est lui aussi distribué sous licence Apache 2.0.

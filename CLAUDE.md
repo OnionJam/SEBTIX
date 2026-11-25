@@ -32,35 +32,59 @@ d'humour, jamais bavard (surtout à l'oral). Parle français.
 
 ## Choix techniques
 - Code interne garde le nom de paquet `openjarvis` (pour suivre les mises à jour d'upstream) ;
-  tout ce qui est visible est renommé Sebtix ; modules perso dans un paquet `sebtix/` séparé.
+  tout ce qui est visible est renommé Sebtix. **Code Sebtix dans `src/sebtix/`** (paquet
+  séparé, déclaré dans `pyproject.toml`). Commande `sebtix` (l'alias `jarvis` reste : OpenJarvis
+  se relance lui-même sous ce nom).
 - Remote `upstream` = open-jarvis/OpenJarvis.
 - Analytics PostHog : **désactivé** (`~/.openjarvis/config.toml`, `[analytics] enabled = false`).
-- Module de minage « Pearl » : jamais installé (extra optionnel), à retirer de la CLI.
-- Données perso dans `perso/` (ignoré par git) : profil.md, criteres.md, deja_postule.md,
-  regles_ecriture.md, CV. Secrets dans `.env` (ignoré).
+- Minage « Pearl » : jamais installé ; commandes `mine` / `pearl` retirées de la CLI.
+- Interface web : fenêtre « Win a Mac mini » et bloc « Leaderboard » retirés ; écran de chat
+  en français ; le reste de l'interface est encore en anglais.
+- Données perso dans `perso/` (ignoré par git) : profil.md, memoire.md, criteres.md,
+  deja_postule.md, regles_ecriture.md, CV. Secrets dans `.env` (ignoré).
 - Limites de dépense : crédit prépayé sans recharge automatique chez le fournisseur d'API.
+
+## Personnalité et mémoire
+- Prompt d'identité : `[agent] default_system_prompt` dans `~/.openjarvis/config.toml`
+  (copie de référence : `src/sebtix/config.exemple.toml`).
+- Raccourcis dans `~/.openjarvis/` lus par OpenJarvis à chaque message :
+  `SOUL.md -> src/sebtix/persona/SOUL.md` (personnalité, public),
+  `USER.md -> perso/profil.md`, `MEMORY.md -> perso/memoire.md` (privés).
+- **Gemma 3 ne sait pas appeler d'outils** (capacités Ollama : completion, vision). Les outils
+  `memory_manage` / `user_profile_manage` ont donné des résultats faux → désactivés.
+  La mémoire est gérée par `src/sebtix/memoire.py`, **sans le modèle** : « retiens / note /
+  souviens-toi … », « oublie … » (rien n'est effacé si > 3 lignes correspondent),
+  « qu'est-ce que tu sais sur moi ? ». Branché au début de `chat_completions`
+  (`src/openjarvis/server/routes.py`) ; une note interne dit au modèle ce qui a été fait.
+  À réutiliser tel quel pour Telegram (étape 4). Pas encore branché sur `sebtix ask` / `chat`.
+- Outils activés : `web_search` seulement. `shell_exec` et `code_interpreter` désactivés
+  (exécution de commandes sur le Mac).
+
+## Tests
+- `uv run --extra dev --extra server pytest tests/server tests/cli tests/sebtix -n 6`
+- 7 échecs connus, antérieurs à Sebtix : `tests/cli/test_memory_cmd.py` et
+  `tests/cli/test_ask_context.py` (extension Rust `openjarvis_rust` non compilée).
 
 ## Environnement installé
 Homebrew, uv 0.13, Python 3.13 (venv `.venv`), Ollama 0.40 (service brew au démarrage),
-Node 26, gh. Lancer OpenJarvis : `uv run jarvis …` depuis le dossier du projet.
-Interface web : `uv run jarvis gui` → http://127.0.0.1:5173.
+Node 26, gh. Dans le Terminal : `cd ~/Projets/Sebtix` puis `uv run sebtix …`.
+Interface web : `uv run sebtix gui` → http://127.0.0.1:5173. Si « port 5173 unavailable » :
+l'ancienne interface tourne encore (attendre quelques secondes ou fermer l'ancienne).
 
 **Modèle local : `gemma3:12b`** (choisi par l'utilisateur après comparaison ; `default_model` dans
 `~/.openjarvis/config.toml`). Plus fiable et meilleur ton en français, ~14 tokens/s, 8,2 Go.
 Repli possible à l'oral (étape 9) : `qwen3:8b` (21 tokens/s, quelques fautes).
 Écartés : qwen3.5:9b (a inventé un détail en résumant un mail), ministral-3:8b (trop bavard).
 
-## À faire à l'étape 2 (repéré à l'étape 1)
-- Supprimer la fenêtre « Win a Mac mini » (concours + analytics + e-mail vers Supabase) et le
-  bloc « Leaderboard / Share your savings » de l'interface.
-- Retirer les commandes `mine` et `pearl` de la CLI.
-
+## Points d'attention pour la suite
+- `sebtix stop` existe déjà dans OpenJarvis (arrête le serveur local). À l'étape 4, il devra
+  couper TOUTE la surveillance (Sentinelle comprise) : le redéfinir à ce moment-là.
 ## Avancement
 | # | Étape | État |
 |---|-------|------|
 | 0 | Prérequis (outils Apple, Homebrew, GitHub) | ✅ |
 | 1 | Installation (fork, dépendances, Ollama, choix du modèle) | ✅ |
-| 2 | Rebranding, personnalité, mémoire (profil.md) | ⏳ |
+| 2 | Rebranding, personnalité, mémoire (profil.md) | ✅ |
 | 3 | Connexion Outlook (Graph, lecture seule) | ⏳ |
 | 4 | Sentinelle Cloudflare + Telegram + synchro + `sebtix stop` / `sebtix budget` | ⏳ |
 | 5 | Brief du matin (8h) | ⏳ |
@@ -74,3 +98,7 @@ Repli possible à l'oral (étape 9) : `qwen3:8b` (21 tokens/s, quelques fautes).
 - 2026-11-25 — Étape 1 : fork cloné, dépendances installées, analytics coupé, modèles testés :
   qwen3:8b, ministral-3:8b, gemma3:12b, qwen3.5:9b → **gemma3:12b retenu**, les autres supprimés.
   Interface web testée : réponse en français en ~6 s. Dossier `perso/` ignoré par git (dépôt public).
+- 2026-11-25 — Étape 2 : commande `sebtix`, bannière et interface renommées, concours /
+  leaderboard / minage retirés, personnalité FR (SOUL.md), profil + mémoire dans `perso/`,
+  mémoire déterministe (`src/sebtix/memoire.py`, 13 tests). Testé dans l'interface web :
+  identité, « retiens », « qu'est-ce que tu sais sur moi ? », « oublie » → OK. NOTICE ajouté.
